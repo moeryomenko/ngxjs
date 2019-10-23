@@ -6,7 +6,7 @@ FROM golang:${GO_VERSION}-alpine as build
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.17.0
+ENV NGINX_VERSION 1.17.5
 ENV NJS_VERSION 0.3.2
 ENV CFLAGS "-O3"
 ENV CXXFLAGS "-O3"
