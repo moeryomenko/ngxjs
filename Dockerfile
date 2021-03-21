@@ -1,31 +1,37 @@
 # Accept the Go version for the image to be set as a build argument.
-# Default to Go 1.12.
-ARG GO_VERSION=1.12
+# Default to Go 1.16.
+ARG GO_VERSION=1.16
 
 FROM golang:${GO_VERSION}-alpine as build
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.17.5
-ENV NJS_VERSION 0.3.2
-ENV CFLAGS "-O3"
-ENV CXXFLAGS "-O3"
+ENV NGINX_VERSION 1.19.8
+ENV NJS_VERSION 0.5.2
+ENV CFLAGS "-O2"
+ENV CXXFLAGS "-O2"
 
 RUN apk add --no-cache \
     gcc libc-dev autoconf libtool automake \
-    make cmake ninja pcre-dev zlib-dev \
+    make cmake ninja pcre-dev \
     linux-headers libxslt-dev gd-dev geoip-dev \
     perl-dev libedit-dev git alpine-sdk findutils \
     libunwind-dev curl tar
 
 WORKDIR /src
 
+RUN git clone --depth 1 --branch 2.0.1 https://github.com/zlib-ng/zlib-ng.git \
+    && cd zlib-ng \
+    && cmake . \
+    && cmake -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF --build . -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build . --target install
+
 # Build BoringSSL.
 RUN git clone https://boringssl.googlesource.com/boringssl \
     && cd boringssl \
     && mkdir build \
     && cd build \
-    && cmake -GNinja .. \
+    && cmake -GNinja -DCMAKE_BUILD_TYPE=Release .. \
     && ninja \
     && mkdir -p ../.openssl/lib \
     && cd ../.openssl \
@@ -49,7 +55,7 @@ RUN mkdir nginx \
     && curl -SL http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz -C nginx --strip-components=1 \
     && cd nginx \
     && ./configure --prefix=/usr/share/nginx \
-	               --sbin-path=/usr/bin/nginx \
+	           --sbin-path=/usr/bin/nginx \
                    --conf-path=/etc/nginx/nginx.conf \
                    --error-log-path=/var/log/nginx/error.log \
                    --http-log-path=/var/log/nginx/access.log \
@@ -69,6 +75,25 @@ RUN mkdir nginx \
                    --with-http_stub_status_module \
                    --without-select_module \
                    --without-poll_module \
+		   --with-http_v2_module \
+		   --without-http_access_module \
+		   --without-http_auth_basic_module \
+		   --without-http_autoindex_module \
+		   --without-http_browser_module \
+		   --without-http_charset_module \
+		   --without-http_empty_gif_module \
+		   --without-http_geo_module \
+		   --without-http_memcached_module \
+		   --without-http_map_module \
+		   --without-http_ssi_module \
+		   --without-http_split_clients_module \
+		   --without-http_fastcgi_module \
+		   --without-http_uwsgi_module \
+		   --without-http_userid_module \
+		   --without-http_scgi_module \
+		   --without-mail_pop3_module \
+		   --without-mail_imap_module \
+		   --without-mail_smtp_module \
                    --add-module="/src/njs/nginx" \
                    --add-module="/src/ngx_brotli" \
                    --with-openssl="/src/boringssl" \
@@ -98,8 +123,8 @@ COPY --from=build /usr/bin/nginx /usr/bin/nginx
 COPY --from=build /usr/share/nginx /usr/share/nginx
 COPY --from=build /var/log/nginx /var/log/nginx
 
-EXPOSE 80
+EXPOSE 8080
 
-STOPSIGNAL SIGTERM
+STOPSIGNAL SIGQUIT
 
 ENTRYPOINT ["/usr/bin/nginx", "-g", "daemon off;"]
