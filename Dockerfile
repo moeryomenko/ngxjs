@@ -122,8 +122,9 @@ COPY --from=build /etc/nginx /etc/nginx
 COPY --from=build /usr/bin/nginx /usr/bin/nginx
 COPY --from=build /usr/share/nginx /usr/share/nginx
 COPY --from=build /var/log/nginx /var/log/nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 8080
+EXPOSE 80
 
 STOPSIGNAL SIGQUIT
 
