@@ -2,8 +2,7 @@
 
 DIR=$(dirname "$0")
 
-host=$@
-[[ -z $host ]] && host=localhost
+[[ -z $@ ]] && host=localhost || host=$@
 
 http_response=`wget --server-response http://$host:8080 --output-document $DIR/index.html 2>&1 | awk '/^  HTTP/{print $2}'`
 

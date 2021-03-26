@@ -75,7 +75,6 @@ RUN mkdir nginx \
                    --with-http_stub_status_module \
                    --without-select_module \
                    --without-poll_module \
-		   --with-http_v2_module \
 		   --without-http_access_module \
 		   --without-http_auth_basic_module \
 		   --without-http_autoindex_module \
@@ -103,6 +102,10 @@ RUN mkdir nginx \
     && touch "/src/boringssl/.openssl/include/openssl/ssl.h" \
     && make && make install
 
+# NOTE: fix problems with poman: no items matching glob.
+RUN touch /var/log/nginx/error.log \
+    && touch /var/log/nginx/access.log
+
 # Create the user and group files that will be used in the running container to
 # run the process as an unprivileged user.
 RUN mkdir /user \
@@ -118,7 +121,7 @@ COPY --from=build /user/group /user/passwd /etc/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Import related nginx files.
-COPY --from=build /etc/nginx /etc/nginx
+COPY --from=build /etc/nginx/mime.types /etc/nginx/mime.types
 COPY --from=build /usr/bin/nginx /usr/bin/nginx
 COPY --from=build /usr/share/nginx /usr/share/nginx
 COPY --from=build /var/log/nginx /var/log/nginx
