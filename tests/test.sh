@@ -2,25 +2,25 @@
 
 DIR=$(dirname "$0")
 
-[[ -z $@ ]] && host=localhost || host=$@
+[ -z $@ ] && host=localhost || host=$@
 
-function basic_case() {
+basic_case () {
 	curl http://$host:8080 > $DIR/basic_case.html
 	check "basic_case"
 }
 
-function gzip_case() {
+gzip_case () {
 	curl -sH 'Accept-encoding: gzip' http://$host:8080 | gunzip - > $DIR/gzip.html
 	check "gzip"
 }
 
-function brotli_case() {
+brotli_case () {
 	curl -sH 'Accept-encoding: br' http://$host:8080 | brotli --decompress - > $DIR/brotli.html
 	check "brotli"
 }
 
-function check() {
-	if [[ -z `diff $DIR/$1.html $DIR/expected_$1.html` ]]; then
+check () {
+	if [ -z `diff $DIR/$1.html $DIR/expected_$1.html` ]; then
 		rm $DIR/$1.html
 		return
 	fi
