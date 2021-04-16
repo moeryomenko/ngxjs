@@ -38,4 +38,3 @@ Contains into `./examples`
 
 * add more examples
 * add more tests (because nginx and all components are compiled from source code)
-* add Github Actions pipeline
