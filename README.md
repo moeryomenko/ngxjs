@@ -33,3 +33,9 @@ For more information see examples.
 ## Examples
 
 Contains into `./examples`
+
+## TODO
+
+* add more examples
+* add more tests (because nginx and all components are compiled from source code)
+* add Github Actions pipeline
