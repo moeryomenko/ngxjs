@@ -19,9 +19,11 @@ jobs:
       run: docker build . -t build
     - name: Testing image
       shell: bash
+      working-directory: tests
       run: |
-        docker run -d -p 8080:80 build
-        ./tests/test.sh
+        docker build . -t test
+        docker run -d -p 8080:80 test
+        ./test.sh
         docker stop $(docker ps -aq)
     - name: Push the Docker image
       if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
