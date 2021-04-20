@@ -6,8 +6,8 @@ FROM golang:${GO_VERSION}-alpine as build
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.19.10
-ENV NJS_VERSION 0.5.2
+ENV NGINX_VERSION 1.20.0
+ENV NJS_VERSION 0.5.3
 ENV CFLAGS "-O2"
 ENV CXXFLAGS "-O2"
 
