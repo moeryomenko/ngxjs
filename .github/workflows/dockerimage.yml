@@ -23,7 +23,7 @@ jobs:
       working-directory: tests
       run: |
         docker build . -t test
-        docker run -d -p 8080:80 test
+        docker run -d -p 8080:80 -p 8083:83 test
         ./test.sh
         docker stop $(docker ps -aq)
     - name: Push the Docker image
