@@ -75,24 +75,24 @@ RUN mkdir nginx \
                    --with-http_stub_status_module \
                    --without-select_module \
                    --without-poll_module \
-		   --without-http_access_module \
-		   --without-http_auth_basic_module \
-		   --without-http_autoindex_module \
-		   --without-http_browser_module \
-		   --without-http_charset_module \
-		   --without-http_empty_gif_module \
-		   --without-http_geo_module \
-		   --without-http_memcached_module \
-		   --without-http_map_module \
-		   --without-http_ssi_module \
-		   --without-http_split_clients_module \
-		   --without-http_fastcgi_module \
-		   --without-http_uwsgi_module \
-		   --without-http_userid_module \
-		   --without-http_scgi_module \
-		   --without-mail_pop3_module \
-		   --without-mail_imap_module \
-		   --without-mail_smtp_module \
+                   --without-http_access_module \
+                   --without-http_auth_basic_module \
+                   --without-http_autoindex_module \
+                   --without-http_browser_module \
+                   --without-http_charset_module \
+                   --without-http_empty_gif_module \
+                   --without-http_geo_module \
+                   --without-http_memcached_module \
+                   --without-http_map_module \
+                   --without-http_ssi_module \
+                   --without-http_split_clients_module \
+                   --without-http_fastcgi_module \
+                   --without-http_uwsgi_module \
+                   --without-http_userid_module \
+                   --without-http_scgi_module \
+                   --without-mail_pop3_module \
+                   --without-mail_imap_module \
+                   --without-mail_smtp_module \
                    --add-module="/src/njs/nginx" \
                    --add-module="/src/ngx_brotli" \
                    --with-openssl="/src/boringssl" \
