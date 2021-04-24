@@ -10,13 +10,13 @@ basic_case () {
 }
 
 gzip_case () {
-	curl -sH 'Accept-encoding: gzip' http://$host:8080 | gunzip - > $DIR/gzip.html
-	check "gzip.html"
+	curl -sH 'Accept-encoding: gzip' http://$host:8080 | gunzip - > $DIR/basic_case.html
+	check "basic_case.html"
 }
 
 brotli_case () {
-	curl -sH 'Accept-encoding: br' http://$host:8080 | brotli --decompress - > $DIR/brotli.html
-	check "brotli.html"
+	curl -sH 'Accept-encoding: br' http://$host:8080 | brotli --decompress - > $DIR/basic_case.html
+	check "basic_case.html"
 }
 
 basic_image_case () {
@@ -45,13 +45,13 @@ tls_basic_case () {
 }
 
 tls_gzip_case () {
-	curl -k -sH 'Accept-encoding: gzip' https://$host:8083 | gunzip - > $DIR/gzip.html
-	check "gzip.html"
+	curl -k -sH 'Accept-encoding: gzip' https://$host:8083 | gunzip - > $DIR/basic_case.html
+	check "basic_case.html"
 }
 
 tls_brotli_case () {
-	curl -k -sH 'Accept-encoding: br' https://$host:8083 | brotli --decompress - > $DIR/brotli.html
-	check "brotli.html"
+	curl -k -sH 'Accept-encoding: br' https://$host:8083 | brotli --decompress - > $DIR/basic_case.html
+	check "basic_case.html"
 }
 
 tls_basic_image_case () {
