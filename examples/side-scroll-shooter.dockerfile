@@ -8,7 +8,7 @@ RUN git clone https://github.com/EremenkoVO/side-scroll-shooter.git . \
     && yarn \
     && yarn run build
 
-FROM moeryomenko/ngxjs:v0.0.2
+FROM moeryomenko/ngxjs:latest
 
 COPY --from=build /src/dist /usr/share/nginx/html
 
