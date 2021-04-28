@@ -34,11 +34,6 @@ brotli_image_case () {
 	check "image.jpg"
 }
 
-basic_njs_case () {
-	curl http://$host:8080/hello > $DIR/njs
-	check "njs"
-}
-
 tls_basic_case () {
 	curl -k https://$host:8083 > $DIR/basic_case.html
 	check "basic_case.html"
@@ -69,11 +64,6 @@ tls_brotli_image_case () {
 	check "image.jpg"
 }
 
-tls_basic_njs_case () {
-	curl -k https://$host:8083/hello > $DIR/njs
-	check "njs"
-}
-
 check () {
 	if [ -z `diff $DIR/$1 $DIR/expected_$1` ]; then
 		rm $DIR/$1
@@ -91,14 +81,12 @@ brotli_case
 basic_image_case
 gzip_image_case
 brotli_image_case
-basic_njs_case
 tls_basic_case
 tls_gzip_case
 tls_brotli_case
 tls_basic_image_case
 tls_gzip_image_case
 tls_brotli_image_case
-tls_basic_njs_case
 
 echo -e "\n\e[32mTests passed!\e[0m\n"
 exit 0

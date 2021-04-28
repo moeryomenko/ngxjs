@@ -40,10 +40,6 @@ RUN git clone https://boringssl.googlesource.com/boringssl \
     && cp ../build/ssl/libssl.a  lib/ \
     && cd /src
 
-# Download njs module.
-RUN mkdir njs \
-    && curl -SL http://hg.nginx.org/njs/archive/${NJS_VERSION}.tar.gz | tar xz -C njs --strip-components=1
-
 # Download ngx_brotli nginx module for support Brotli compression.
 RUN git clone --recurse-submodules https://github.com/google/ngx_brotli.git
 
@@ -93,7 +89,6 @@ RUN mkdir nginx \
                    --without-mail_pop3_module \
                    --without-mail_imap_module \
                    --without-mail_smtp_module \
-                   --add-module="/src/njs/nginx" \
                    --add-module="/src/ngx_brotli" \
                    --with-openssl="/src/boringssl" \
                    --with-cc-opt="-I /src/boringssl/.openssl/include/" \
