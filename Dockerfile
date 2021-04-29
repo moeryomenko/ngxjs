@@ -8,18 +8,20 @@ LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
 ENV NGINX_VERSION 1.20.0
 ENV NJS_VERSION 0.5.3
+ENV NPS_VERSION 1.14.33.1-RC1
 ENV CFLAGS "-O2"
 ENV CXXFLAGS "-O2"
 
 RUN apk add --no-cache \
     gcc libc-dev autoconf libtool automake \
-    make cmake ninja pcre-dev \
+    make cmake ninja pcre-dev libuuid \
     linux-headers libxslt-dev gd-dev geoip-dev \
     perl-dev libedit-dev git alpine-sdk findutils \
     libunwind-dev curl tar
 
 WORKDIR /src
 
+# Build zlib-ng.
 RUN git clone --depth 1 --branch 2.0.1 https://github.com/zlib-ng/zlib-ng.git \
     && cd zlib-ng \
     && cmake . \
@@ -46,6 +48,11 @@ RUN mkdir njs \
 
 # Download ngx_brotli nginx module for support Brotli compression.
 RUN git clone --recurse-submodules https://github.com/google/ngx_brotli.git
+
+# Download pagespeed-ngx module for speed up pages.
+RUN mkdir ngx_pagespeed \
+    && curl -SL https://github.com/apache/incubator-pagespeed-ngx/archive/refs/tags/v${NPS_VERSION}.tar.gz \
+    | tar xz -C ngx_pagespeed --strip-components=1 \
 
 ENV NGX_BROTLI_STATIC_MODULE_ONLY 1
 ENV CFLAGS "-static -static-libgcc -ldl -O3 -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -fPIE -fstack-protector-all -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security"
@@ -95,6 +102,7 @@ RUN mkdir nginx \
                    --without-mail_smtp_module \
                    --add-module="/src/njs/nginx" \
                    --add-module="/src/ngx_brotli" \
+                   --add-module="/src/ngx_pagespeed" \
                    --with-openssl="/src/boringssl" \
                    --with-cc-opt="-I /src/boringssl/.openssl/include/" \
                    --with-ld-opt="-static -Wl,-Bsymbolic-functions -Wl,-z,relro -L /src/boringssl/.openssl/lib/" \
