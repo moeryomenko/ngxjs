@@ -6,8 +6,8 @@ FROM golang:${GO_VERSION}-alpine as build
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.21.0
-ENV NJS_VERSION 0.5.3
+ENV NGINX_VERSION 1.21.1
+ENV NJS_VERSION 0.6.1
 ENV CFLAGS "-O2"
 ENV CXXFLAGS "-O2"
 
@@ -20,10 +20,10 @@ RUN apk add --no-cache \
 
 WORKDIR /src
 
-RUN git clone --depth 1 --branch 2.0.1 https://github.com/zlib-ng/zlib-ng.git \
+RUN git clone --depth 1 --branch 2.0.5 https://github.com/zlib-ng/zlib-ng.git \
     && cd zlib-ng \
-    && cmake . \
-    && cmake -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF --build . -DCMAKE_BUILD_TYPE=Release \
+    && cmake -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .\
+    && cmake --build . \
     && cmake --build . --target install
 
 # Build BoringSSL.
