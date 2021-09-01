@@ -1,13 +1,13 @@
 # Accept the Go version for the image to be set as a build argument.
 # Default to Go 1.16.
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 
 FROM golang:${GO_VERSION}-alpine as build
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.21.1
-ENV NJS_VERSION 0.6.1
+ENV NGINX_VERSION 1.21.2
+ENV NJS_VERSION 0.6.2
 ENV CFLAGS "-O2"
 ENV CXXFLAGS "-O2"
 
