@@ -2,43 +2,54 @@
 # Default to Go 1.16.
 ARG GO_VERSION=1.17
 
-FROM golang:${GO_VERSION}-alpine as build
+FROM golang:${GO_VERSION}-alpine3.14 as base
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.21.3
+ENV NGINX_VERSION 1.21.4
 ENV NJS_VERSION 0.6.2
-ENV CFLAGS "-O2"
-ENV CXXFLAGS "-O2"
+ENV CFLAGS "-O3"
+ENV CXXFLAGS "-O3"
 
-RUN apk add --no-cache \
-    gcc libc-dev autoconf libtool automake \
+RUN apk add --no-cache gcc libc-dev \
+    autoconf libtool automake \
     make cmake ninja pcre-dev \
-    linux-headers libxslt-dev gd-dev geoip-dev \
-    perl-dev libedit-dev git alpine-sdk findutils \
-    libunwind-dev curl tar
+    linux-headers libxslt-dev gd-dev \
+    geoip-dev perl-dev libedit-dev \
+    git alpine-sdk findutils \
+    libunwind-dev curl tar ccache clang
+
+FROM base as build
 
 WORKDIR /src
 
-RUN git clone --depth 1 --branch 2.0.5 https://github.com/zlib-ng/zlib-ng.git \
-    && cd zlib-ng \
-    && cmake -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .\
-    && cmake --build . \
-    && cmake --build . --target install
+RUN --mount=type=cache,target=/root/.cache/ccache \
+    git clone --depth 1 --branch 2.0.5 https://github.com/zlib-ng/zlib-ng.git && \
+    cd zlib-ng && \
+    cmake -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+             -DCMAKE_C_COMPILER_LAUNCHER='/usr/bin/ccache' \
+             -DCMAKE_CXX_COMPILER_LAUNCHER='/usr/bin/ccache' \
+             -DZLIB_COMPAT=ON -DZLIB_ENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release . && \
+    cmake --build . && \
+    cmake --build . --target install
 
 # Build BoringSSL.
-RUN git clone https://boringssl.googlesource.com/boringssl \
-    && cd boringssl \
-    && mkdir build \
-    && cd build \
-    && cmake -GNinja -DCMAKE_BUILD_TYPE=Release .. \
-    && ninja \
-    && mkdir -p ../.openssl/lib \
-    && cd ../.openssl \
-    && ln -s ../include include \
-    && cp ../build/crypto/libcrypto.a lib/ \
-    && cp ../build/ssl/libssl.a  lib/ \
-    && cd /src
+RUN --mount=type=cache,target=/root/.cache/ccache \
+    git clone https://boringssl.googlesource.com/boringssl && \
+    cd boringssl && \
+    mkdir build && \
+    cd build && \
+    cmake -GNinja -DCMAKE_C_COMPILER=clang \
+             -DCMAKE_CXX_COMPILER=clang++ \
+             -DCMAKE_C_COMPILER_LAUNCHER='/usr/bin/ccache' \
+             -DCMAKE_CXX_COMPILER_LAUNCHER='/usr/bin/ccache' -DCMAKE_BUILD_TYPE=Release .. && \
+    ninja && \
+    mkdir -p ../.openssl/lib && \
+    cd ../.openssl && \
+    ln -s ../include include && \
+    cp ../build/crypto/libcrypto.a lib/ && \
+    cp ../build/ssl/libssl.a  lib/ && \
+    cd /src
 
 # Download njs module.
 RUN mkdir njs \
@@ -55,7 +66,7 @@ RUN mkdir nginx \
     && curl -SL http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz -C nginx --strip-components=1 \
     && cd nginx \
     && ./configure --prefix=/usr/share/nginx \
-	           --sbin-path=/usr/bin/nginx \
+                   --sbin-path=/usr/bin/nginx \
                    --conf-path=/etc/nginx/nginx.conf \
                    --error-log-path=/var/log/nginx/error.log \
                    --http-log-path=/var/log/nginx/access.log \

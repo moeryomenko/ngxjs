@@ -15,27 +15,60 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: docker build . -t build
-    - name: Testing image
-      shell: bash
-      working-directory: tests
-      run: |
-        docker build . -t test
-        docker run -d -p 8080:80 -p 8083:83 test
-        ./test.sh
-        docker stop $(docker ps -aq)
-    - name: Push the Docker image
-      if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-        function tag_and_push {
-          docker tag build "moeryomenko/ngxjs:${1}" && docker push "moeryomenko/ngxjs:${1}"
-        }
-        if [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
-          tag_and_push "development"
-        elif [[ "${GITHUB_REF}" =~ refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+      - name: Checkout
+        uses: actions/checkout@v2
+      # This is the a separate action that sets up buildx runner
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      # So now you can use Actions' own caching!
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      # And make it available for the builds
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: false
+          tags: moeryomenko/ngxjs:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+      # This ugly bit is necessary if you don't want your cache to grow forever
+      # till it hits GitHub's limit of 5GB.
+      # Temp fix
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - name: Testing image
+        shell: bash
+        working-directory: tests
+        run: |
+          docker build . -t test
+          docker run -d -p 8080:80 -p 8083:83 test
+          ./test.sh
+          docker stop $(docker ps -aq)
+      - name: Push the Docker image
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          function tag_and_push {
+            docker tag moeryomenko/ngxjs "moeryomenko/ngxjs:${1}" && docker push "moeryomenko/ngxjs:${1}"
+          }
+          if [[ "${GITHUB_REF}" == "refs/heads/master" ]]; then
+            tag_and_push "development"
+          elif [[ "${GITHUB_REF}" =~ refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
             TAG="${GITHUB_REF#"refs/tags/v"}"
             tag_and_push "${TAG}"
             if [[ "${TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -47,6 +80,6 @@ jobs:
                 tag_and_push "${TAG%.*.*}-ttn";
                 tag_and_push "latest-ttn"
             fi
-        else
-          tag_and_push "${GITHUB_REF#"refs/tags/"}"
-        fi
+          else
+            tag_and_push "${GITHUB_REF#"refs/tags/"}"
+          fi

@@ -1,4 +1,4 @@
-FROM build
+FROM moeryomenko/ngxjs:latest
 
 COPY assets /usr/share/nginx/html
 COPY etc /etc
