@@ -2,12 +2,12 @@
 # Default to Go 1.16.
 ARG GO_VERSION=1.17
 
-FROM golang:${GO_VERSION}-alpine3.14 as base
+FROM golang:${GO_VERSION}-alpine3.15 as base
 
 LABEL maintainer="Maxim Eryomenko <moeryomenko@gmail.com>"
 
-ENV NGINX_VERSION 1.21.4
-ENV NJS_VERSION 0.6.2
+ENV NGINX_VERSION 1.22.0
+ENV NJS_VERSION 0.7.4
 ENV CFLAGS "-O3"
 ENV CXXFLAGS "-O3"
 
